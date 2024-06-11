@@ -1,21 +1,23 @@
 package main
 
 import (
-	"fmt"
 	"github.com/iWorld-y/EugeneGin/Gene"
 	"net/http"
 )
 
 func main() {
 	r := Gene.NewEngine()
-	r.GET("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "URL.Path = %q\n", r.URL.Path)
+	r.GET("/", func(c *Gene.Context) {
+		c.HTML(http.StatusOK, "<h1>Hello From Gene By iWorld</h1>")
 	})
-	r.GET("/hello", func(w http.ResponseWriter, r *http.Request) {
-		for k, v := range r.Header {
-			fmt.Fprintf(w, "Header[%q] = %q\n", k, v)
-		}
-		fmt.Fprint(w, "Hello From iWorld \n")
+	r.GET("/hello", func(c *Gene.Context) {
+		c.String(http.StatusOK, "Hello %s, you're at %s\n", c.Query("name"), c.Path)
+	})
+	r.POST("/login", func(c *Gene.Context) {
+		c.JSON(http.StatusOK, Gene.H{
+			"UserName": c.PostFrom("UserName"),
+			"PassWord": c.PostFrom("PassWord"),
+		})
 	})
 	r.Run(":9999")
 }
