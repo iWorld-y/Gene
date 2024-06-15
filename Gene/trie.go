@@ -70,8 +70,8 @@ func (n *node) search(parts []string, height int) *node {
 	children := n.matchChildren(part)
 	// 深搜
 	for _, child := range children {
-		if child.search(parts, height+1) != nil {
-			return child
+		if result := child.search(parts, height+1); result != nil {
+			return result
 		}
 	}
 	return nil
