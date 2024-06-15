@@ -47,3 +47,21 @@ func (r *router) parsePattern(pattern string) []string {
 	}
 	return parts
 }
+
+// addRouter 添加路由
+func (r *router) addRouter(method string, pattern string, handler HandlerFunc) {
+	parts := r.parsePattern(pattern)
+	key := strings.Join([]string{method, pattern}, "-")
+	var (
+		root *node
+		ok   bool
+	)
+	// 若方法不存在则新建
+	if root, ok = r.roots[method]; !ok {
+		root = &node{}
+	}
+	// 插入路由
+	root.insert(pattern, parts, 0)
+	// 注册 Handler
+	r.handlers[key] = handler
+}
