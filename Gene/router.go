@@ -1,6 +1,7 @@
 package Gene
 
 import (
+	"log"
 	"net/http"
 	"strings"
 )
@@ -37,12 +38,17 @@ func (r *router) addRoute(method string, pattern string, handler HandlerFunc) {
 func (r *router) handler(c *Context) {
 	// 读取路由和参数
 	n, param := r.getRouter(c.Method, c.Path)
+	// 若路由存在, 则上下文添加参数
 	if n != nil {
-		// 若路由存在, 则上下文添加参数
 		c.Params = param
-		key := strings.Join([]string{c.Method, c.Path}, "-")
+		key := strings.Join([]string{c.Method, n.pattern}, "-")
 		// 执行该路由对应的 Handler
-		r.handlers[key](c)
+		if handler, ok := r.handlers[key]; ok {
+			handler(c)
+			log.Printf("%+v", c)
+		} else {
+			log.Fatalf("handler err: %+v", c)
+		}
 	} else {
 		c.String(http.StatusNotFound, "404 NOT FOUND: %s\n", c.Path)
 	}
@@ -64,13 +70,13 @@ func (r *router) parsePattern(pattern string) []string {
 }
 
 // getRouter 获取路由
-func (r *router) getRouter(method string, pattern string) (*node, map[string]string) {
+func (r *router) getRouter(method string, path string) (*node, map[string]string) {
 	root, ok := r.roots[method]
 	// 若方法不存在则获取路由失败
 	if !ok {
 		return nil, nil
 	}
-	searchParts := r.parsePattern(pattern)
+	searchParts := r.parsePattern(path)
 	params := make(map[string]string)
 	n := root.search(searchParts, 0)
 	if n == nil {
