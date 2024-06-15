@@ -1,6 +1,8 @@
 package Gene
 
-import "testing"
+import (
+	"testing"
+)
 
 func Test_parsePattern(t *testing.T) {
 	r := router{}

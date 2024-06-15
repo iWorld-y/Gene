@@ -1,7 +1,6 @@
 package Gene
 
 import (
-	"log"
 	"net/http"
 	"strings"
 )
@@ -18,9 +17,20 @@ func newRouter() *router {
 	}
 }
 
+// addRoute 添加路由
 func (r *router) addRoute(method string, pattern string, handler HandlerFunc) {
-	log.Printf("Router %4s - %s", method, pattern)
+	parts := r.parsePattern(pattern)
 	key := strings.Join([]string{method, pattern}, "-")
+	var (
+		ok bool
+	)
+	// 若方法不存在则新建
+	if _, ok = r.roots[method]; !ok {
+		r.roots[method] = &node{}
+	}
+	// 插入路由
+	r.roots[method].insert(pattern, parts, 0)
+	// 注册 Handler
 	r.handlers[key] = handler
 }
 
@@ -48,20 +58,30 @@ func (r *router) parsePattern(pattern string) []string {
 	return parts
 }
 
-// addRouter 添加路由
-func (r *router) addRouter(method string, pattern string, handler HandlerFunc) {
-	parts := r.parsePattern(pattern)
-	key := strings.Join([]string{method, pattern}, "-")
-	var (
-		root *node
-		ok   bool
-	)
-	// 若方法不存在则新建
-	if root, ok = r.roots[method]; !ok {
-		root = &node{}
+// getRouter 获取路由
+func (r *router) getRouter(method string, pattern string) (*node, map[string]string) {
+	root, ok := r.roots[method]
+	// 若方法不存在则获取路由失败
+	if !ok {
+		return nil, nil
 	}
-	// 插入路由
-	root.insert(pattern, parts, 0)
-	// 注册 Handler
-	r.handlers[key] = handler
+	searchParts := r.parsePattern(pattern)
+	params := make(map[string]string)
+	n := root.search(searchParts, 0)
+	if n == nil {
+		return nil, nil
+	}
+	parts := r.parsePattern(n.pattern)
+	for idx, part := range parts {
+		// ":" 参数解析
+		if strings.HasPrefix(part, ":") {
+			params[part[1:]] = searchParts[idx]
+		} else if strings.HasPrefix(part, "*") && len(part) > 1 {
+			// "*" 参数解析
+			// 星号之后都是参数
+			params[part[1:]] = strings.Join(searchParts[idx:], "/")
+			break
+		}
+	}
+	return n, params
 }
