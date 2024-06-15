@@ -35,7 +35,7 @@ func (r *router) addRoute(method string, pattern string, handler HandlerFunc) {
 }
 
 func (r *router) handler(c *Context) {
-	key := strings.Join([]string{c.Methon, c.Path}, "-")
+	key := strings.Join([]string{c.Method, c.Path}, "-")
 	if handler, ok := r.handlers[key]; ok {
 		handler(c)
 	} else {

@@ -11,10 +11,11 @@ type H map[string]interface{}
 type Context struct {
 	Writer http.ResponseWriter
 	Req    *http.Request
-
+	// 请求信息
 	Path   string
-	Methon string
-
+	Method string
+	Params map[string]string
+	// 响应信息
 	StatusCode int64
 }
 
@@ -23,7 +24,7 @@ func newContext(w http.ResponseWriter, r *http.Request) *Context {
 		Writer: w,
 		Req:    r,
 		Path:   r.URL.Path,
-		Methon: r.Method,
+		Method: r.Method,
 	}
 }
 
@@ -68,4 +69,10 @@ func (c *Context) HTML(code int64, html string) {
 	c.SetHeader("Content-Type", "text/html")
 	c.Status(code)
 	c.Writer.Write([]byte(html))
+}
+
+// Param 获取请求中的参数
+func (c *Context) Param(key string) string {
+	value, _ := c.Params[key]
+	return value
 }
