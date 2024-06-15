@@ -54,3 +54,25 @@ func (n *node) insert(pattern string, parts []string, height int) {
 	}
 	child.insert(pattern, parts, height+1)
 }
+
+// search 路由搜索
+func (n *node) search(parts []string, height int) *node {
+	// 若已达最大深度 或 当前节点可被任意匹配
+	if len(parts) == height || strings.HasPrefix(n.part, "*") {
+		// 但此节点并不是路由末尾
+		// 则匹配失败
+		if n.pattern == "" {
+			return nil
+		}
+		return n
+	}
+	part := parts[height]
+	children := n.matchChildren(part)
+	// 深搜
+	for _, child := range children {
+		if child.search(parts, height+1) != nil {
+			return child
+		}
+	}
+	return nil
+}
