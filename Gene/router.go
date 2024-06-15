@@ -7,11 +7,13 @@ import (
 )
 
 type router struct {
+	roots    map[string]*node
 	handlers map[string]HandlerFunc
 }
 
 func newRouter() *router {
 	return &router{
+		roots:    make(map[string]*node),
 		handlers: make(map[string]HandlerFunc),
 	}
 }
@@ -29,4 +31,19 @@ func (r *router) handler(c *Context) {
 	} else {
 		c.String(http.StatusNotFound, "404 NOT FOUND: %s\n", c.Path)
 	}
+}
+
+// parsePattern 划分 pattern 为 parts, 且只允许一个 "*" 片段存在
+func (r *router) parsePattern(pattern string) []string {
+	split := strings.Split(pattern, "/")
+	var parts []string
+	for _, part := range split {
+		if part != "" {
+			parts = append(parts, part)
+			if strings.HasPrefix(part, "*") {
+				break
+			}
+		}
+	}
+	return parts
 }
