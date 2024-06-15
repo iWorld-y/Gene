@@ -35,9 +35,14 @@ func (r *router) addRoute(method string, pattern string, handler HandlerFunc) {
 }
 
 func (r *router) handler(c *Context) {
-	key := strings.Join([]string{c.Method, c.Path}, "-")
-	if handler, ok := r.handlers[key]; ok {
-		handler(c)
+	// 读取路由和参数
+	n, param := r.getRouter(c.Method, c.Path)
+	if n != nil {
+		// 若路由存在, 则上下文添加参数
+		c.Params = param
+		key := strings.Join([]string{c.Method, c.Path}, "-")
+		// 执行该路由对应的 Handler
+		r.handlers[key](c)
 	} else {
 		c.String(http.StatusNotFound, "404 NOT FOUND: %s\n", c.Path)
 	}
