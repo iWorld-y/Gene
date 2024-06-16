@@ -1,7 +1,6 @@
 package Gene
 
 import (
-	"log"
 	"net/http"
 	"strings"
 )
@@ -42,16 +41,13 @@ func (r *router) handler(c *Context) {
 	if n != nil {
 		c.Params = param
 		key := strings.Join([]string{c.Method, n.pattern}, "-")
-		// 执行该路由对应的 Handler
-		if handler, ok := r.handlers[key]; ok {
-			handler(c)
-			log.Printf("%+v", c)
-		} else {
-			log.Fatalf("handler err: %+v", c)
-		}
+		c.handlers = append(c.handlers, r.handlers[key])
 	} else {
-		c.String(http.StatusNotFound, "404 NOT FOUND: %s\n", c.Path)
+		c.handlers = append(c.handlers, func(c *Context) {
+			c.String(http.StatusNotFound, "404 NOT FOUND: %s\n", c.Path)
+		})
 	}
+	c.Next()
 }
 
 // parsePattern 划分 pattern 为 parts, 且只允许一个 "*" 片段存在

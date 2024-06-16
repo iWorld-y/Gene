@@ -2,6 +2,7 @@ package Gene
 
 import (
 	"net/http"
+	"strings"
 )
 
 // HandlerFunc handler 方法
@@ -37,6 +38,14 @@ func (e *Engine) Run(addr string) error {
 }
 
 func (e *Engine) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	var middlewares []HandlerFunc
+	for _, group := range e.groups {
+		// 判断该请求适用于哪些中间件
+		if strings.HasPrefix(r.URL.Path, group.prefix) {
+			middlewares = append(middlewares, group.middlewares...)
+		}
+	}
 	c := newContext(w, r)
+	c.handlers = middlewares
 	e.router.handler(c)
 }
