@@ -25,5 +25,25 @@ func main() {
 	r.GET("/assets/*filepath", func(c *Gene.Context) {
 		c.JSON(http.StatusOK, Gene.H{"filepath": c.Param("filepath")})
 	})
+
+	v1 := r.Group("/v1")
+	v1.GET("/", func(c *Gene.Context) {
+		c.HTML(http.StatusOK, "<h1>v1v1\nHello From Gene By iWorld</h1>")
+	})
+	v1.GET("/hello", func(c *Gene.Context) {
+		c.String(http.StatusOK, "v1v1\nHello %s, you're at %s\n", c.Query("name"), c.Path)
+	})
+	v1.GET("/hello/:name", func(c *Gene.Context) {
+		c.String(http.StatusOK, "v1v1\nHello %s, you're at %s\n", c.Param("name"), c.Path)
+	})
+	v1.POST("/login", func(c *Gene.Context) {
+		c.JSON(http.StatusOK, Gene.H{
+			"UserName": c.PostFrom("UserName"),
+			"PassWord": c.PostFrom("PassWord"),
+		})
+	})
+	v1.GET("/assets/*filepath", func(c *Gene.Context) {
+		c.JSON(http.StatusOK, Gene.H{"v1v1\nfilepath": c.Param("filepath")})
+	})
 	r.Run(":9999")
 }

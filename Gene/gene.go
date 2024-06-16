@@ -8,13 +8,16 @@ import (
 type HandlerFunc func(ctx *Context)
 
 type Engine struct {
+	*RouterGroup
 	router *router
+	groups []*RouterGroup // 保存所有的组
 }
 
 func NewEngine() *Engine {
-	return &Engine{
-		router: newRouter(),
-	}
+	engine := &Engine{router: newRouter()}
+	engine.RouterGroup = &RouterGroup{engine: engine}
+	engine.groups = []*RouterGroup{engine.RouterGroup}
+	return engine
 }
 
 func (e *Engine) addRoute(method string, pattern string, handler HandlerFunc) {
