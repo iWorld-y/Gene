@@ -1,6 +1,8 @@
 package Gene
 
 import (
+	"html/template"
+	"log"
 	"net/http"
 	"strings"
 )
@@ -10,8 +12,10 @@ type HandlerFunc func(ctx *Context)
 
 type Engine struct {
 	*RouterGroup
-	router *router
-	groups []*RouterGroup // 保存所有的组
+	router   *router
+	groups   []*RouterGroup     // 保存所有的组
+	template *template.Template // 模板
+	funcMap  template.FuncMap   // 模板渲染方法
 }
 
 func NewEngine() *Engine {
@@ -19,10 +23,6 @@ func NewEngine() *Engine {
 	engine.RouterGroup = &RouterGroup{engine: engine}
 	engine.groups = []*RouterGroup{engine.RouterGroup}
 	return engine
-}
-
-func (e *Engine) addRoute(method string, pattern string, handler HandlerFunc) {
-	e.router.addRoute(method, pattern, handler)
 }
 
 func (e *Engine) GET(pattern string, handler HandlerFunc) {
@@ -34,6 +34,7 @@ func (e *Engine) POST(pattern string, handler HandlerFunc) {
 }
 
 func (e *Engine) Run(addr string) error {
+	log.Printf("Run -> %s\n", addr)
 	return http.ListenAndServe(addr, e)
 }
 
@@ -47,5 +48,16 @@ func (e *Engine) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	c := newContext(w, r)
 	c.handlers = middlewares
+	c.engine = e
 	e.router.handler(c)
+	log.Printf("ServeHTTP -> cxt: %+v", c)
+	log.Printf("ServeHTTP -> Engine: %+v", e)
+}
+
+func (e *Engine) SetFuncMap(funcMap template.FuncMap) {
+	e.funcMap = funcMap
+}
+
+func (e *Engine) LoadHTMLGlob(pattern string) {
+	e.template = template.Must(template.New("").Funcs(e.funcMap).ParseGlob(pattern))
 }

@@ -20,6 +20,8 @@ type Context struct {
 	// 中间件
 	handlers []HandlerFunc
 	index    int
+
+	engine *Engine
 }
 
 func newContext(w http.ResponseWriter, r *http.Request) *Context {
@@ -69,10 +71,17 @@ func (c *Context) Data(code int64, data []byte) {
 	c.Writer.Write(data)
 }
 
-func (c *Context) HTML(code int64, html string) {
+func (c *Context) Fail(code int64, err string) {
+	c.index = len(c.handlers)
+	c.JSON(code, H{"message": err})
+}
+
+func (c *Context) HTML(code int64, name string, data interface{}) {
 	c.SetHeader("Content-Type", "text/html")
 	c.Status(code)
-	c.Writer.Write([]byte(html))
+	if err := c.engine.template.ExecuteTemplate(c.Writer, name, data); err != nil {
+		c.Fail(500, err.Error())
+	}
 }
 
 // Param 获取请求中的参数

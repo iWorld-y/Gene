@@ -50,8 +50,10 @@ func (g *RouterGroup) createStaticHandler(relativePath string, fs http.FileSyste
 	absolutePath := path.Join(g.prefix, relativePath)
 	fileServer := http.StripPrefix(absolutePath, http.FileServer(fs))
 	return func(ctx *Context) {
-		file := ctx.Param("filepath")
+		file := path.Join("static", ctx.Param("filepath"))
+		log.Println("file:\t", file)
 		if _, err := os.Open(file); err != nil {
+			log.Println("os.Open(file)\t", err)
 			ctx.Status(http.StatusNotFound)
 			return
 		}

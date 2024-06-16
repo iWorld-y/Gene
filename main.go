@@ -1,65 +1,51 @@
 package main
 
 import (
-	"github.com/iWorld-y/EugeneGin/Gene"
-	"log"
+	"fmt"
+	Gene "github.com/iWorld-y/EugeneGin/src"
+	"html/template"
 	"net/http"
 	"time"
 )
 
+type student struct {
+	Name string
+	Age  int8
+}
+
+func FormatAsDate(t time.Time) string {
+	year, month, day := t.Date()
+	return fmt.Sprintf("%d-%02d-%02d", year, month, day)
+}
+
 func main() {
 	r := Gene.NewEngine()
 	r.Use(Gene.Logger)
+	r.SetFuncMap(template.FuncMap{
+		"FormatAsDate": FormatAsDate,
+	})
+	r.LoadHTMLGlob("asserts/templates/*")
+	//r.Static("/asserts", "static")
+	r.Static("/assert", "asserts/static")
+
+	stu1 := &student{Name: "Geektutu", Age: 20}
+	stu2 := &student{Name: "Jack", Age: 22}
 	r.GET("/", func(c *Gene.Context) {
-		c.HTML(http.StatusOK, "<h1>Hello From Gene By iWorld</h1>")
+		c.HTML(http.StatusOK, "实时计算技术 环境搭建.html", nil)
 	})
-	r.GET("/hello", func(c *Gene.Context) {
-		c.String(http.StatusOK, "Hello %s, you're at %s\n", c.Query("name"), c.Path)
-	})
-	r.GET("/hello/:name", func(c *Gene.Context) {
-		c.String(http.StatusOK, "Hello %s, you're at %s\n", c.Param("name"), c.Path)
-	})
-	r.POST("/login", func(c *Gene.Context) {
-		c.JSON(http.StatusOK, Gene.H{
-			"UserName": c.PostFrom("UserName"),
-			"PassWord": c.PostFrom("PassWord"),
+	r.GET("/students", func(c *Gene.Context) {
+		c.HTML(http.StatusOK, "arr.tmpl", Gene.H{
+			"title":  "gee",
+			"stuArr": [2]*student{stu1, stu2},
 		})
 	})
-	r.GET("/assets/*filepath", func(c *Gene.Context) {
-		c.JSON(http.StatusOK, Gene.H{"filepath": c.Param("filepath")})
-	})
 
-	v1 := r.Group("/v1")
-	v1.GET("/", func(c *Gene.Context) {
-		c.HTML(http.StatusOK, "<h1>v1v1\nHello From Gene By iWorld</h1>")
-	})
-	v1.GET("/hello", func(c *Gene.Context) {
-		c.String(http.StatusOK, "v1v1\nHello %s, you're at %s\n", c.Query("name"), c.Path)
-	})
-	v1.GET("/hello/:name", func(c *Gene.Context) {
-		c.String(http.StatusOK, "v1v1\nHello %s, you're at %s\n", c.Param("name"), c.Path)
-	})
-	v1.POST("/login", func(c *Gene.Context) {
-		c.JSON(http.StatusOK, Gene.H{
-			"UserName": c.PostFrom("UserName"),
-			"PassWord": c.PostFrom("PassWord"),
+	r.GET("/date", func(c *Gene.Context) {
+		c.HTML(http.StatusOK, "custom_func.tmpl", Gene.H{
+			"title": "gee",
+			"now":   time.Now(),
 		})
 	})
-	v1.GET("/assets/*filepath", func(c *Gene.Context) {
-		c.JSON(http.StatusOK, Gene.H{"v1v1\nfilepath": c.Param("filepath")})
-	})
 
-	v2 := r.Group("/v2")
-	v2.Use(onlyForV2())
-	v2.GET("/hello/:name", func(c *Gene.Context) {
-		c.String(http.StatusOK, "v1v1\nHello %s, you're at %s\n", c.Param("name"), c.Path)
-	})
 	r.Run(":9999")
-}
-
-func onlyForV2() Gene.HandlerFunc {
-	return func(ctx *Gene.Context) {
-		t := time.Now()
-		log.Printf("[%d] %s in %v for group v2", ctx.StatusCode, ctx.Req.RequestURI, time.Since(t))
-	}
 }
