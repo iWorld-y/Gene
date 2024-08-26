@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	Gene "github.com/iWorld-y/EugeneGin/src"
 	"html/template"
 	"net/http"
 	"time"
+
+	Gene "github.com/iWorld-y/EugeneGin/src"
 )
 
 type student struct {
@@ -25,7 +26,6 @@ func main() {
 		"FormatAsDate": FormatAsDate,
 	})
 	r.LoadHTMLGlob("asserts/templates/*")
-	//r.Static("/asserts", "static")
 	r.Static("/assert", "asserts/static")
 
 	stu1 := &student{Name: "Geektutu", Age: 20}
