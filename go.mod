@@ -1,3 +1,3 @@
 module github.com/iWorld-y/EugeneGin
 
-go 1.18
+go 1.23.0
