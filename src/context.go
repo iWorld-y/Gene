@@ -21,7 +21,7 @@ func newContext(w http.ResponseWriter, req *http.Request) *Context {
 	}
 }
 
-// 返回请求中指定键 (key) 的第一个值. 如果该键不存在, 返回空字符串.
+// PostForm 返回请求中指定键 (key) 的第一个值. 如果该键不存在, 返回空字符串.
 func (c *Context) PostForm(key string) string {
 	return c.Req.FormValue(key)
 }
